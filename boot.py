@@ -4,6 +4,9 @@
 #import webrepl
 #webrepl.start()
 import wifimgr
+import gc
+gc.collect()
+
 """
 from time import sleep
 import machine
