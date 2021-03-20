@@ -4,9 +4,6 @@
 #import webrepl
 #webrepl.start()
 import wifimgr
-import gc
-gc.collect()
-
 """
 from time import sleep
 import machine
@@ -18,8 +15,4 @@ except:
 """
 
 
-wlan = wifimgr.get_connection()
-if wlan is None:
-    print("Could not initialize the network connection.")
-    while True:
-        pass  # you shall not pass :D
+
