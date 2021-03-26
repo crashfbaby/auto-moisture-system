@@ -1,0 +1,9 @@
+Chillin in water (reading from '0' Pin 36)
+{'1': 21733, '0': 65535, '3': 0, '2': 7825}
+
+Removing all other sensors and iterating through each pin
+Pin 4
+>>> get_moisture_levels(moisture_sensors)
+{'0': 5489} // Different value than max or min
+
+
