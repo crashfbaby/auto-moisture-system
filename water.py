@@ -7,10 +7,10 @@ import utime
 # Pin mapping for moisture sensors int is pin num on board and GPIO on pinout
 # Pins: 36 (0), 39 (1), 34 (2), 35 (3)
 moisture_pin_0 = Pin(36, Pin.IN)
-#moisture_pin_1 = Pin(39, Pin.IN)
-#moisture_pin_2 = Pin(34, Pin.IN)
-#moisture_pin_3 = Pin(35, Pin.IN)
-moisture_sensors = [moisture_pin_0] #, moisture_pin_1, moisture_pin_2, moisture_pin_3]
+moisture_pin_1 = Pin(39, Pin.IN)
+moisture_pin_2 = Pin(34, Pin.IN)
+moisture_pin_3 = Pin(35, Pin.IN)
+moisture_sensors = [moisture_pin_0] , [moisture_pin_1], [moisture_pin_2], [moisture_pin_3]
 
 # pin mapping for pumps int is pin num on board and GPIO on pinout
 

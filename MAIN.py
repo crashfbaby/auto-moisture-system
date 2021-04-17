@@ -14,15 +14,15 @@ def web_page():
             <h2>How Wet do you want it?</h2>
             
             <form action="/home" method="post">
-                Plant 1:  <input type="range" min="1" max="100" value= """ + wetness['0'] + """ class="slider" id="moisture_pin_1"><br />
-                Plant 2:  <input type="range" min="1" max="100" value= """ + wetness['1'] + """ class="slider" id="moisture_pin_2"><br />
-                Plant 3:  <input type="range" min="1" max="100" value= """ + wetness['2'] + """ class="slider" id="moisture_pin_3"><br />
-                Plant 4:  <input type="range" min="1" max="100" value= """ + wetness['3'] + """ class="slider" id="moisture_pin_4"><br />
+                Plant 1:  <input type="range" min="1" max="100" value={} class="slider" id="moisture_pin_1"><br />
+                Plant 2:  <input type="range" min="1" max="100" value={} class="slider" id="moisture_pin_2"><br />
+                Plant 3:  <input type="range" min="1" max="100" value={} class="slider" id="moisture_pin_3"><br />
+                Plant 4:  <input type="range" min="1" max="100" value={}  class="slider" id="moisture_pin_4"><br />
                 <input type="submit" value="OK">
             </form>
         </body>
     </html>
-    """ 
+    """.format(wetness['0'], wetness['1'], wetness['2'], wetness['3']) 
     return content
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
