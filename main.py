@@ -18,11 +18,12 @@ if wlan is None:
 
 
 def web_page():
+    # calls profiles from water.dat and returns dict {plant num: percent of wettness range} eg {0:0.25} 
     wetness = water.read_moisture_profiles()
-    plant_1 = (wetness['0'] / 65535)*100
-    plant_2 = (wetness['1'] / 65535)*100
-    plant_3 = (wetness['2'] / 65535)*100
-    plant_4 = (wetness['3'] / 65535)*100
+    plant_0 = (wetness['0'] / 65535)*100
+    plant_1 = (wetness['1'] / 65535)*100
+    plant_2 = (wetness['2'] / 65535)*100
+    plant_3 = (wetness['3'] / 65535)*100
     
     content = """
     <!DOCTYPE html>
@@ -34,16 +35,17 @@ def web_page():
             <h2>How Wet do you want it?</h2>
             
             <form action="/home" method="post">
-                Plant 1: Wet <input type="range" min="1" max="100" value="%(plant_1)" class="slider" id="moisture_pin_1"> Dry <br /> 
-                Plant 2: Wet <input type="range" min="1" max="100" value="50" class="slider" id="moisture_pin_2"> Dry <br />
-                Plant 3: Wet <input type="range" min="1" max="100" value="50" class="slider" id="moisture_pin_3"> Dry <br />
-                Plant 4: Wet <input type="range" min="1" max="100" value="50" class="slider" id="moisture_pin_4"> Dry <br />
-                <input type="submit" value="OK">
+                Plant 1: Wet <input type="range" min="1" max="100" value="{plant_0}" class="slider" id="moisture_pin_1"> Dry <br /> 
+                Plant 2: Wet <input type="range" min="1" max="100" value="{plant_1}" class="slider" id="moisture_pin_2"> Dry <br />
+                Plant 3: Wet <input type="range" min="1" max="100" value="{plant_2}" class="slider" id="moisture_pin_3"> Dry <br />
+                Plant 4: Wet <input type="range" min="1" max="100" value="{plant_3}" class="slider" id="moisture_pin_4"> Dry <br />
+                <input type="submit" value="Update Wetness">
             </form>
         </body>
     </html>
-    """ %int(plant_1)
+    """.format(plant_0=plant_0, plant_1=plant_1, plant_2=plant_2, plant_3=plant_3)
     return content
+
 try:
   s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -71,4 +73,4 @@ while True:
     conn.close()
   except OSError as e:
     conn.close()
-    print('Connection closed')
+    print('Error Connection closed')
