@@ -1,8 +1,9 @@
-
+import water
 import wifimgr
 from MicroWebSrv2  import *
 from time          import sleep
 from _thread       import allocate_lock
+
 
 
 # Wifi manager loop
@@ -12,65 +13,429 @@ if wlan is None:
     while True:
         pass  # you shall not pass :D
 
-# ============================================================================
-# ============================================================================
-# ============================================================================
 
-@WebRoute(GET, '/test-redir')
-def RequestTestRedirect(microWebSrv2, request) :
-    request.Response.ReturnRedirect('/test.pdf')
 
 # ============================================================================
 # ============================================================================
 # ============================================================================
+@WebRoute(GET, '/', name='home')
+def RequestHomePage(microWebSrv2, request) :
+    plants = water.get_plant_objects()
+    current_moisture_percent = {}
+    for idx, plant in plants.items():
+        reading = plant.check_moisture_sensor()
+        current_moisture_percent[idx] = str(((reading - plant.moisture_min) / (plant.moisture_max - plant.moisture_min)) * 100)
 
-@WebRoute(GET, '/test-post', name='TestPost1/2')
-def RequestTestPost(microWebSrv2, request) :
     content = """\
-    <!DOCTYPE html>
+     <!DOCTYPE html>
     <html>
         <head>
-            <title>POST 1/2</title>
+            <title>Plants</title>
         </head>
         <body>
-            <h2>MicroWebSrv2 - POST 1/2</h2>
-            User address: %s<br />
-            <form action="/test-post" method="post">
-                First name: <input type="text" name="firstname"><br />
-                Last name:  <input type="text" name="lastname"><br />
-                <input type="submit" value="OK">
+            <h2>Plants</h2>
+            
+            <p>
+              <ul>
+                  <li>
+                      <h3> %s </h3>
+                          <li> Pump and Sensor ID: %s </li>
+                          <li> Current Moisture Reading: %s </li>
+                  </li>
+                  <li>
+                      <h3> %s </h3>
+                          <li> Pump and Sensor ID: %s </li>
+                          <li> Current Moisture Reading: %s </li>
+                  </li>
+                  <li>
+                      <h3> %s </h3>
+                          <li> Pump and Sensor ID: %s </li>
+                          <li> Current Moisture Reading: %s </li>
+                  </li>
+                  <li>
+                      <h3> %s </h3>
+                          <li> Pump and Sensor ID: %s </li>
+                          <li> Current Moisture Reading: %s </li>
+                  </li>  
+                          
+              </ul>
+            </p>
+            <form action="/edit">
+                <input type="submit" value="Edit" />
             </form>
         </body>
     </html>
-    """ % request.UserAddress[0]
+    """ % (plants['0'].name, '0', current_moisture_percent['0'],
+           plants['1'].name, '1', current_moisture_percent['1'],
+           plants['2'].name, '2', current_moisture_percent['2'],
+           plants['3'].name, '3', current_moisture_percent['3'])
+    
+    
+    request.Response.ReturnOk(content)
+
+@WebRoute(GET, '/edit', name='edit1/2')
+def RequestPlantPage(microWebSrv2, request) :
+    plants = water.get_plant_objects()
+    name_0 = plants['0'].name
+    content =  """\
+     <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Edit Plants</title>
+        </head>
+        <body>
+            <h2>Edit Plants</h2>
+               <form action="/edit" method="post">
+                   <input type="submit" value="Update Plants">
+                   <h3> Plant 0 </h3>
+                       <label for="plant_0_name">Plant Name</label><br>
+                       <input type="text" id="plant_0_name" name="plant_0_name" value=%s><br>
+                       <label for="moisture_percent_0">Plant Desired Moisture</label><br>
+                       Wet <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_0" id="moisture_percent_0"> Dry <br />
+                       <br>
+                   <h3> Plant 1 </h3>
+                       <label for="plant_1_name">Plant Name</label><br>
+                       <input type="text" id="plant_1_name" name="plant_1_name" value=%s><br>
+                       <label for="moisture_percent_1">Plant Desired Moisture</label><br>
+                       Wet <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_1" id="moisture_percent_1"> Dry <br />
+                       <br>
+                   <h3> Plant 2 </h3>
+                       <label for="plant_2_name">Plant Name</label><br>
+                       <input type="text" id="plant_2_name" name="plant_2_name" value=%s><br>
+                       <label for="moisture_percent_2">Plant Desired Moisture</label><br>
+                       Wet <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_2" id="moisture_percent_2"> Dry <br />
+                       <br>
+                   <h3> Plant 3 </h3>
+                       <label for="plant_3_name">Plant Name</label><br>
+                       <input type="text" id="plant_3_name" name="plant_3_name" value=%s><br>
+                       <label for="moisture_percent_3">Plant Desired Moisture</label><br>
+                       Wet <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_3" id="moisture_percent_3"> Dry <br />
+                       <br>
+                       
+               </form>
+               
+               <form action="/calibrate">
+                  <input type="submit" value="Calibrate Sensors" />
+               </form
+            
+        </body>
+    </html>
+    """ % (MicroWebSrv2.HTMLEscape(name_0), plants['0'].desired_moisture_percent * 100,
+           MicroWebSrv2.HTMLEscape(plants['1'].name), plants['1'].desired_moisture_percent * 100,
+           MicroWebSrv2.HTMLEscape(plants['2'].name), plants['2'].desired_moisture_percent * 100,
+           MicroWebSrv2.HTMLEscape(plants['3'].name), plants['3'].desired_moisture_percent * 100)
+    #figure out ohow to get full name 
+    request.Response.ReturnOk(content)
+    
+    
+
+@WebRoute(POST, '/edit', name='edit2/2')
+def RequestTestPost(microWebSrv2, request) :
+    data = request.GetPostedURLEncodedForm()
+    plants = water.get_plant_objects()
+    try:
+        moisture_percent_0 = float(data['moisture_percent_0']) / 100
+        moisture_percent_1 = float(data['moisture_percent_1']) / 100
+        moisture_percent_2 = float(data['moisture_percent_2']) / 100
+        moisture_percent_3 = float(data['moisture_percent_3']) / 100
+        plants['0'].update_desired_moisture_percent(moisture_percent_0)
+        plants['1'].update_desired_moisture_percent(moisture_percent_1)
+        plants['2'].update_desired_moisture_percent(moisture_percent_2)
+        plants['3'].update_desired_moisture_percent(moisture_percent_3)
+        plants['0'].update_name(data['plant_0_name'])
+        plants['1'].update_name(data['plant_1_name'])
+        plants['2'].update_name(data['plant_2_name'])
+        plants['3'].update_name(data['plant_3_name'])
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved') 
+    
+@WebRoute(POST, '/saved', name='saved')
+def RequestTestPost(microWebSrv2, request) :    
+    content = """\
+     <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Plants</title>
+        </head>
+        <body>
+            <h2>Changes Saved!</h2>
+            
+            <form action="/">
+                <input type="submit" value="Home" />
+            </form>  
+        </body>
+    </html>
+    """   
+    
+    request.Response.ReturnOk(content)
+    
+@WebRoute(GET, '/calibrate', name='calibrate1/2')
+def RequestTestPost(microWebSrv2, request) :
+    plants = water.get_plant_objects()
+    content = """\
+     <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Plants</title>
+        </head>
+        <body>
+            <h2>Calibrate The Sensors</h2>
+                <p> You need a cup of water for this.
+                    Be careful changes can not be reversed
+                </p>
+                
+                <ul>
+                  <li>
+                      <h3>Plant 0, Name: %s </h3>
+                          <p> Current Sensor Reading: %s </p>
+                          <p> Make sure sensor is completley dry </p>
+                          <form action="/plant_0_max">
+                            <input type="submit" value="Calibrate Sensor" name="plant_0_max" />
+                          </form>
+                          
+                          <p> Place sensor in a cup of water </p>
+                          <form action="/plant_0_min">
+                            <input type="submit" value="Calibrate Sensor" name=plant_0_min />
+                          </form>
+                          
+                  </li>
+                  <li>
+                      <h3>Plant 1, Name: %s </h3>
+                          <p> Current Sensor Reading: %s </p>
+                          <p> Make sure sensor is completley dry </p>
+                          <form action="/plant_1_max">
+                            <input type="submit" value="Calibrate Sensor" name="plant_1_max" />
+                          </form>
+                          
+                          <p> Place sensor in a cup of water </p>
+                          <form action="/plant_1_min">
+                            <input type="submit" value="Calibrate Sensor" name=plant_1_min />
+                          </form>
+                          
+                  </li>
+                  <li>
+                      <h3>Plant 2, Name: %s </h3>
+                          <p> Current Sensor Reading: %s </p>
+                          <p> Make sure sensor is completley dry </p>
+                          <form action="/plant_2_max">
+                            <input type="submit" value="Calibrate Sensor" name="plant_2_max" />
+                          </form>
+                          
+                          <p> Place sensor in a cup of water </p>
+                          <form action="/plant_2_min">
+                            <input type="submit" value="Calibrate Sensor" name=plant_2_min />
+                          </form>
+                          
+                  </li>
+                  <li>
+                      <h3>Plant 3, Name: %s </h3>
+                          <p> Current Sensor Reading: %s </p>
+                          <p> Make sure sensor is completley dry </p>
+                          <form action="/plant_3_max">
+                            <input type="submit" value="Calibrate Sensor" name="plant_3_max" />
+                          </form>
+                          
+                          <p> Place sensor in a cup of water </p>
+                          <form action="/plant_3_min">
+                            <input type="submit" value="Calibrate Sensor" name=plant_3_min />
+                          </form>
+                          
+                  </li>
+                </ul>
+                <br>        
+                
+                
+                
+            <form action="/">
+                <input type="submit" value="Home" />
+            </form>  
+        </body>
+    </html>
+    """ % (plants['0'].name, plants['0'].check_moisture_sensor(),
+           plants['1'].name, plants['1'].check_moisture_sensor(),
+           plants['2'].name, plants['2'].check_moisture_sensor(),
+           plants['3'].name, plants['3'].check_moisture_sensor())
+    
+    
+    request.Response.ReturnOk(content)
+    
+@WebRoute(GET, '/plant_0_max', name='plant_0_max')
+def PlantMax(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['0']
+        plant.update_max()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+@WebRoute(GET, '/plant_1_max', name='plant_1_max')
+def PlantMax(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['1']
+        plant.update_max()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+@WebRoute(GET, '/plant_2_max', name='plant_2_max')
+def PlantMax(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['2']
+        plant.update_max()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+@WebRoute(GET, '/plant_3_max', name='plant_3_max')
+def PlantMax(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['3']
+        plant.update_max()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+        
+@WebRoute(GET, '/plant_0_min', name='plant_0_min')
+def PlantMin(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['0']
+        plant.update_min()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+WebRoute(GET, '/plant_1_min', name='plant_1_min')
+def PlantMin(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['1']
+        plant.update_min()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+WebRoute(GET, '/plant_2_min', name='plant_2_min')
+def PlantMin(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['2']
+        plant.update_min()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+WebRoute(GET, '/plant_3_min', name='plant_3_min')
+def PlantMin(microWebSrv2, request) :
+    try:
+        plants = water.get_plant_objects()
+        plant = plants['3']
+        plant.update_min()
+        water.write_plant_profiles()
+    except :
+        request.Response.ReturnBadRequest()
+        return
+    request.Response.ReturnRedirect('/saved')
+    
+    
+    
+# DELETE /moisture_levels
+    
+@WebRoute(GET, '/moisture_levels', name='moisture_levels1/2')
+def RequestTestPost(microWebSrv2, request) :
+    wetness = {}
+    plants = water.get_plant_objects()
+    for idx, plant in plants.items():
+        wetness[idx] = (float(plant.desired_moisture_percent) * 100)
+    
+    content = """\
+     <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Wetness</title>
+        </head>
+        <body>
+            <h2>How Wet do you want it?</h2>
+            
+            <form action="/moisture_levels" method="post">
+                Plant 1:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_0"><br />
+                Plant 2:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_1"><br />
+                Plant 3:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_2"><br />
+                Plant 4:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_3"><br />
+                <input type="submit" value="Update P">
+            </form>
+        </body>
+    </html>
+    """ % (wetness['0'], wetness['1'], wetness['2'], wetness['3']) 
+    
     request.Response.ReturnOk(content)
 
 # ------------------------------------------------------------------------
 
-@WebRoute(POST, '/test-post', name='TestPost2/2')
+@WebRoute(POST, '/moisture_levels', name='moisture_levels2/2')
 def RequestTestPost(microWebSrv2, request) :
     data = request.GetPostedURLEncodedForm()
-    try :
-        firstname = data['firstname']
-        lastname  = data['lastname']
+    plants = water.get_plant_objects()
+    try:
+        moisture_percent_0 = float(data['moisture_percent_0']) / 100
+        moisture_percent_1 = float(data['moisture_percent_1']) / 100
+        moisture_percent_2 = float(data['moisture_percent_2']) / 100
+        moisture_percent_3 = float(data['moisture_percent_3']) / 100
+        plants['0'].update_desired_moisture_percent(moisture_percent_0)
+        plants['1'].update_desired_moisture_percent(moisture_percent_1)
+        plants['2'].update_desired_moisture_percent(moisture_percent_2)
+        plants['3'].update_desired_moisture_percent(moisture_percent_3)
+        water.write_plant_profiles()
     except :
         request.Response.ReturnBadRequest()
         return
-    content   = """\
-    <!DOCTYPE html>
+    wetness = {}
+    plants = water.get_plant_objects()
+    for idx, plant in plants.items():
+        wetness[idx] = (float(plant.desired_moisture_percent) * 100)
+    
+    content = """\
+     <!DOCTYPE html>
     <html>
         <head>
-            <title>POST 2/2</title>
+            <title>Wetness</title>
         </head>
         <body>
-            <h2>MicroWebSrv2 - POST 2/2</h2>
-            Hello %s %s :)<br />
+            <h2>How Wet do you want it?</h2>
+            
+            <form action="/moisture_levels" method="post">
+                Plant 1:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_0"><br />
+                Plant 2:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_1"><br />
+                Plant 3:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_2"><br />
+                Plant 4:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_3"><br />
+                <input type="submit" value="OK">
+            </form>
         </body>
     </html>
-    """ % ( MicroWebSrv2.HTMLEscape(firstname),
-            MicroWebSrv2.HTMLEscape(lastname) )
+    """ % (wetness['0'], wetness['1'], wetness['2'], wetness['3'])  
+    
     request.Response.ReturnOk(content)
-
 # ============================================================================
 # ============================================================================
 # ============================================================================
@@ -109,41 +474,6 @@ def OnWebSocketClosed(webSocket) :
 # ============================================================================
 # ============================================================================
 
-global _chatWebSockets
-_chatWebSockets = [ ]
-
-global _chatLock
-_chatLock = allocate_lock()
-
-# ------------------------------------------------------------------------
-
-def WSJoinChat(webSocket) :
-    webSocket.OnTextMessage = OnWSChatTextMsg
-    webSocket.OnClosed      = OnWSChatClosed
-    addr = webSocket.Request.UserAddress
-    with _chatLock :
-        for ws in _chatWebSockets :
-            ws.SendTextMessage('<%s:%s HAS JOINED THE CHAT>' % addr)
-        _chatWebSockets.append(webSocket)
-        webSocket.SendTextMessage('<WELCOME %s:%s>' % addr)
-
-# ------------------------------------------------------------------------
-
-def OnWSChatTextMsg(webSocket, msg) :
-    addr = webSocket.Request.UserAddress
-    with _chatLock :
-        for ws in _chatWebSockets :
-            ws.SendTextMessage('<%s:%s> %s' % (addr[0], addr[1], msg))
-
-# ------------------------------------------------------------------------
-
-def OnWSChatClosed(webSocket) :
-    addr = webSocket.Request.UserAddress
-    with _chatLock :
-        if webSocket in _chatWebSockets :
-            _chatWebSockets.remove(webSocket)
-            for ws in _chatWebSockets :
-                ws.SendTextMessage('<%s:%s HAS LEFT THE CHAT>' % addr)
 
 # ============================================================================
 # ============================================================================
