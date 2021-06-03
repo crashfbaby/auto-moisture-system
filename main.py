@@ -18,6 +18,7 @@ if wlan is None:
 # ============================================================================
 # ============================================================================
 # ============================================================================
+
 @WebRoute(GET, '/', name='home')
 def RequestHomePage(microWebSrv2, request) :
     plants = water.get_plant_objects()
@@ -73,10 +74,10 @@ def RequestHomePage(microWebSrv2, request) :
     
     request.Response.ReturnOk(content)
 
+
 @WebRoute(GET, '/edit', name='edit1/2')
 def RequestPlantPage(microWebSrv2, request) :
     plants = water.get_plant_objects()
-    name_0 = plants['0'].name
     content =  """\
      <!DOCTYPE html>
     <html>
@@ -120,7 +121,7 @@ def RequestPlantPage(microWebSrv2, request) :
             
         </body>
     </html>
-    """ % (MicroWebSrv2.HTMLEscape(name_0), plants['0'].desired_moisture_percent * 100,
+    """ % (MicroWebSrv2.HTMLEscape(plants['0'].name), plants['0'].desired_moisture_percent * 100,
            MicroWebSrv2.HTMLEscape(plants['1'].name), plants['1'].desired_moisture_percent * 100,
            MicroWebSrv2.HTMLEscape(plants['2'].name), plants['2'].desired_moisture_percent * 100,
            MicroWebSrv2.HTMLEscape(plants['3'].name), plants['3'].desired_moisture_percent * 100)
@@ -152,6 +153,34 @@ def RequestTestPost(microWebSrv2, request) :
         return
     request.Response.ReturnRedirect('/saved') 
     
+@WebRoute(GET, '/saved', name='saved')
+def RequestTestPost(microWebSrv2, request) :    
+    content = """\
+     <!DOCTYPE html>
+    <html>
+        <head>
+            <title>Plants</title>
+        </head>
+        <body>
+            <h2>Changes Saved!</h2>
+            
+            <form action="/">
+                <input type="submit" value="Home" />
+            </form>
+            
+            <form action="/edit">
+                <input type="submit" value="Edit Plants" />
+            </form>
+            
+            <form action="/calibrate">
+                <input type="submit" value="Calibrate Sensors" />
+            </form
+        </body>
+    </html>
+    """   
+    
+    request.Response.ReturnOk(content)
+
 @WebRoute(POST, '/saved', name='saved')
 def RequestTestPost(microWebSrv2, request) :    
     content = """\
@@ -165,7 +194,15 @@ def RequestTestPost(microWebSrv2, request) :
             
             <form action="/">
                 <input type="submit" value="Home" />
-            </form>  
+            </form>
+            
+            <form action="/edit">
+                <input type="submit" value="Edit Plants" />
+            </form>
+            
+            <form action="/calibrate">
+                <input type="submit" value="Calibrate Sensors" />
+            </form
         </body>
     </html>
     """   
@@ -181,6 +218,14 @@ def RequestTestPost(microWebSrv2, request) :
         <head>
             <title>Plants</title>
         </head>
+        
+        <form action="/">
+                <input type="submit" value="Home" />
+            </form>
+        <form action="/edit">
+                <input type="submit" value="Edit Plants" />
+            </form>
+            
         <body>
             <h2>Calibrate The Sensors</h2>
                 <p> You need a cup of water for this.
@@ -190,74 +235,83 @@ def RequestTestPost(microWebSrv2, request) :
                 <ul>
                   <li>
                       <h3>Plant 0, Name: %s </h3>
+                          <p> Make sure sensor is completley dry and refresh the page </p>
                           <p> Current Sensor Reading: %s </p>
-                          <p> Make sure sensor is completley dry </p>
+                          <p> Current Sensor Max: %s </p>
+                          
                           <form action="/plant_0_max">
-                            <input type="submit" value="Calibrate Sensor" name="plant_0_max" />
+                            <input type="submit" value="Calibrate Max Sensor Value" name="plant_0_max" />
                           </form>
                           
-                          <p> Place sensor in a cup of water </p>
+                          <p> Place sensor in a cup of water and refresh the page </p>
+                          <p> Current Sensor Min: %s </p>
+                          
                           <form action="/plant_0_min">
-                            <input type="submit" value="Calibrate Sensor" name=plant_0_min />
-                          </form>
-                          
+                            <input type="submit" value="Calibrate Min Sensor Value" name=plant_0_min />
+                          </form>                          
                   </li>
                   <li>
                       <h3>Plant 1, Name: %s </h3>
+                          <p> Make sure sensor is completley dry and refresh the page </p>
                           <p> Current Sensor Reading: %s </p>
-                          <p> Make sure sensor is completley dry </p>
+                          <p> Current Sensor Max: %s </p>
+                          
                           <form action="/plant_1_max">
-                            <input type="submit" value="Calibrate Sensor" name="plant_1_max" />
+                            <input type="submit" value="Calibrate Max Sensor Value" name="plant_1_max" />
                           </form>
                           
-                          <p> Place sensor in a cup of water </p>
+                          <p> Place sensor in a cup of water and refresh the page </p>
+                          <p> Current Sensor Min: %s </p>
+                          
                           <form action="/plant_1_min">
-                            <input type="submit" value="Calibrate Sensor" name=plant_1_min />
+                            <input type="submit" value="Calibrate Min Sensor Value" name=plant_1_min />
                           </form>
                           
                   </li>
                   <li>
                       <h3>Plant 2, Name: %s </h3>
+                          <p> Make sure sensor is completley dry and refresh the page </p>
                           <p> Current Sensor Reading: %s </p>
-                          <p> Make sure sensor is completley dry </p>
+                          <p> Current Sensor Max: %s </p>
+                          
                           <form action="/plant_2_max">
-                            <input type="submit" value="Calibrate Sensor" name="plant_2_max" />
+                            <input type="submit" value="Calibrate Max Sensor Value" name="plant_2_max" />
                           </form>
                           
-                          <p> Place sensor in a cup of water </p>
+                          <p> Place sensor in a cup of water and refresh the page </p>
+                          <p> Current Sensor Min: %s </p>
+                          
                           <form action="/plant_2_min">
-                            <input type="submit" value="Calibrate Sensor" name=plant_2_min />
-                          </form>
-                          
+                            <input type="submit" value="Calibrate Min Sensor Value" name=plant_2_min />
+                          </form>   
                   </li>
                   <li>
                       <h3>Plant 3, Name: %s </h3>
+                          <p> Make sure sensor is completley dry and refresh the page </p>
                           <p> Current Sensor Reading: %s </p>
-                          <p> Make sure sensor is completley dry </p>
+                          <p> Current Sensor Max: %s </p>
+                          
                           <form action="/plant_3_max">
-                            <input type="submit" value="Calibrate Sensor" name="plant_3_max" />
+                            <input type="submit" value="Calibrate Max Sensor Value" name="plant_3_max" />
                           </form>
                           
-                          <p> Place sensor in a cup of water </p>
+                          <p> Place sensor in a cup of water and refresh the page </p>
+                          <p> Current Sensor Min: %s </p>
+                          
                           <form action="/plant_3_min">
-                            <input type="submit" value="Calibrate Sensor" name=plant_3_min />
-                          </form>
-                          
+                            <input type="submit" value="Calibrate Min Sensor Value" name=plant_3_min />
+                          </form>   
                   </li>
                 </ul>
-                <br>        
-                
-                
-                
-            <form action="/">
-                <input type="submit" value="Home" />
-            </form>  
         </body>
+        
     </html>
-    """ % (plants['0'].name, plants['0'].check_moisture_sensor(),
-           plants['1'].name, plants['1'].check_moisture_sensor(),
-           plants['2'].name, plants['2'].check_moisture_sensor(),
-           plants['3'].name, plants['3'].check_moisture_sensor())
+    """ % (plants['0'].name, plants['0'].check_moisture_sensor(), plants['0'].moisture_max, plants['0'].moisture_min,
+           plants['1'].name, plants['1'].check_moisture_sensor(), plants['1'].moisture_max, plants['1'].moisture_min,
+           plants['2'].name, plants['2'].check_moisture_sensor(), plants['2'].moisture_max, plants['2'].moisture_min,
+           plants['3'].name, plants['3'].check_moisture_sensor(), plants['3'].moisture_max, plants['3'].moisture_min,
+           )
+
     
     
     request.Response.ReturnOk(content)
@@ -322,7 +376,7 @@ def PlantMin(microWebSrv2, request) :
         return
     request.Response.ReturnRedirect('/saved')
     
-WebRoute(GET, '/plant_1_min', name='plant_1_min')
+@WebRoute(GET, '/plant_1_min', name='plant_1_min')
 def PlantMin(microWebSrv2, request) :
     try:
         plants = water.get_plant_objects()
@@ -334,7 +388,7 @@ def PlantMin(microWebSrv2, request) :
         return
     request.Response.ReturnRedirect('/saved')
     
-WebRoute(GET, '/plant_2_min', name='plant_2_min')
+@WebRoute(GET, '/plant_2_min', name='plant_2_min')
 def PlantMin(microWebSrv2, request) :
     try:
         plants = water.get_plant_objects()
@@ -346,7 +400,7 @@ def PlantMin(microWebSrv2, request) :
         return
     request.Response.ReturnRedirect('/saved')
     
-WebRoute(GET, '/plant_3_min', name='plant_3_min')
+@WebRoute(GET, '/plant_3_min', name='plant_3_min')
 def PlantMin(microWebSrv2, request) :
     try:
         plants = water.get_plant_objects()
@@ -360,82 +414,7 @@ def PlantMin(microWebSrv2, request) :
     
     
     
-# DELETE /moisture_levels
-    
-@WebRoute(GET, '/moisture_levels', name='moisture_levels1/2')
-def RequestTestPost(microWebSrv2, request) :
-    wetness = {}
-    plants = water.get_plant_objects()
-    for idx, plant in plants.items():
-        wetness[idx] = (float(plant.desired_moisture_percent) * 100)
-    
-    content = """\
-     <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Wetness</title>
-        </head>
-        <body>
-            <h2>How Wet do you want it?</h2>
-            
-            <form action="/moisture_levels" method="post">
-                Plant 1:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_0"><br />
-                Plant 2:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_1"><br />
-                Plant 3:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_2"><br />
-                Plant 4:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_3"><br />
-                <input type="submit" value="Update P">
-            </form>
-        </body>
-    </html>
-    """ % (wetness['0'], wetness['1'], wetness['2'], wetness['3']) 
-    
-    request.Response.ReturnOk(content)
 
-# ------------------------------------------------------------------------
-
-@WebRoute(POST, '/moisture_levels', name='moisture_levels2/2')
-def RequestTestPost(microWebSrv2, request) :
-    data = request.GetPostedURLEncodedForm()
-    plants = water.get_plant_objects()
-    try:
-        moisture_percent_0 = float(data['moisture_percent_0']) / 100
-        moisture_percent_1 = float(data['moisture_percent_1']) / 100
-        moisture_percent_2 = float(data['moisture_percent_2']) / 100
-        moisture_percent_3 = float(data['moisture_percent_3']) / 100
-        plants['0'].update_desired_moisture_percent(moisture_percent_0)
-        plants['1'].update_desired_moisture_percent(moisture_percent_1)
-        plants['2'].update_desired_moisture_percent(moisture_percent_2)
-        plants['3'].update_desired_moisture_percent(moisture_percent_3)
-        water.write_plant_profiles()
-    except :
-        request.Response.ReturnBadRequest()
-        return
-    wetness = {}
-    plants = water.get_plant_objects()
-    for idx, plant in plants.items():
-        wetness[idx] = (float(plant.desired_moisture_percent) * 100)
-    
-    content = """\
-     <!DOCTYPE html>
-    <html>
-        <head>
-            <title>Wetness</title>
-        </head>
-        <body>
-            <h2>How Wet do you want it?</h2>
-            
-            <form action="/moisture_levels" method="post">
-                Plant 1:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_0"><br />
-                Plant 2:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_1"><br />
-                Plant 3:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_2"><br />
-                Plant 4:  <input type="range" min="1" max="100" value=%s class="slider" name="moisture_percent_3"><br />
-                <input type="submit" value="OK">
-            </form>
-        </body>
-    </html>
-    """ % (wetness['0'], wetness['1'], wetness['2'], wetness['3'])  
-    
-    request.Response.ReturnOk(content)
 # ============================================================================
 # ============================================================================
 # ============================================================================
@@ -482,14 +461,18 @@ def OnWebSocketClosed(webSocket) :
 print()
 
 # Loads the PyhtmlTemplate module globally and configure it,
-pyhtmlMod = MicroWebSrv2.LoadModule('PyhtmlTemplate')
-pyhtmlMod.ShowDebug = True
-pyhtmlMod.SetGlobalVar('TestVar', 12345)
+try:
+    pyhtmlMod = MicroWebSrv2.LoadModule('PyhtmlTemplate')
+    pyhtmlMod.ShowDebug = True
+    pyhtmlMod.SetGlobalVar('TestVar', 12345)
+except:
+    pass
 
 # Loads the WebSockets module globally and configure it,
-wsMod = MicroWebSrv2.LoadModule('WebSockets')
-wsMod.OnWebSocketAccepted = OnWebSocketAccepted
-
+try:
+    wsMod = MicroWebSrv2.LoadModule('WebSockets')
+    wsMod.OnWebSocketAccepted = OnWebSocketAccepted
+except: pass
 # Instanciates the MicroWebSrv2 class,
 mws2 = MicroWebSrv2()
 

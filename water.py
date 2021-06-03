@@ -87,6 +87,8 @@ class Plant :
     #should be called with sensor in water lower resistance = more water  WET
     def update_min(self):
         new_min = self.check_moisture_sensor()
+        if new_min == 65535:
+            new_min -= 1
         self.moisture_min = new_min
         write_plant_profiles()
         
